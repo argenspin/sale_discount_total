@@ -53,7 +53,7 @@ class SaleOrder(models.Model):
         string='Discount type',
         readonly=True,
         states={'draft': [('readonly', False)], 'sent': [('readonly', False)]},
-        default='percent')
+        default='amount')
     discount_rate = fields.Float('Discount Rate',
                                  digits=dp.get_precision('Account'),
                                  readonly=True,
@@ -72,6 +72,7 @@ class SaleOrder(models.Model):
                                       readonly=True, compute='_amount_all',
                                       digits=dp.get_precision('Account'),
                                       track_visibility='always')
+    
 
     @api.onchange('discount_type', 'discount_rate', 'order_line')
     def supply_rate(self):
@@ -84,9 +85,9 @@ class SaleOrder(models.Model):
                 for line in order.order_line:
                     total += round((line.product_uom_qty * line.price_unit))
                 if order.discount_rate != 0:
-                    discount = (order.discount_rate / total) * 100
+                    discount = round((order.discount_rate / total) * 100, 4)
                 else:
-                    discount = order.discount_rate
+                    discount = round(order.discount_rate,4)
                 for line in order.order_line:
                     line.discount = discount
                     # print(line.discount)
@@ -132,3 +133,9 @@ class SaleOrderLine(models.Model):
     discount = fields.Float(string='Discount (%)', digits=(16, 20), default=0.0)
     total_discount = fields.Float(string="Total Discount", default=0.0,
                                   store=True)
+    ds_discount_amount = fields.Float(string="Disc. Amount", readonly=False, store=True, compute="_ds_compute_discount_amount" )
+
+    @api.depends('product_uom_qty','price_unit','total_discount','discount')
+    def _ds_compute_discount_amount(self):
+        for record in self:
+            record.ds_discount_amount = (record.total_discount - record.price_unit) * record.product_uom_qty

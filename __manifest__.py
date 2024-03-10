@@ -37,14 +37,15 @@ Module to manage discount on total amount in Sale.
         as an specific amount or percentage
 """,
     'depends': ['sale',
-                'account', 'delivery'
+                'account',
+                "reports_custom_page",
                 ],
     'data': [
         'views/res_config_view.xml',
         'views/sale_view.xml',
         'views/account_invoice_view.xml',
-        'views/invoice_report.xml',
-        'views/sale_order_report.xml',
+        # 'views/invoice_report.xml',
+        # 'views/sale_order_report.xml',
     ],
     'images': ['static/description/banner.png'],
     'license': 'AGPL-3',
